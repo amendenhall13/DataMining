@@ -9,6 +9,7 @@ import pandas as pd
 import numpy as np
 import math
 from collections import Counter
+import itertools
 
 class AprioriPipeline(object):
     def __init__(self,filepath_):
@@ -30,11 +31,13 @@ class AprioriPipeline(object):
     def apriori(self):
         freqk = self.freqSet
         k = 2
-        while(k <= self.melt["EID"].max()+1):
-            candidates = self.generateCandidates(freqk,k)
-            #Calculates support for candidates and adds ones with high enough support to self.freqSet along with their support.
-            self.evaluateCandidates(candidates)
-            k +=1
+        #while(k <= 3): #self.melt["EID"].max()+1):
+        candidates = self.generateCandidates(freqk,k)
+        #Calculates support for candidates and adds ones with high enough support to self.freqSet along with their support.
+        self.evaluateCandidates(candidates)
+        print(self.freqSet)
+        self.dictToTxt(self.freqSet)
+            #k +=1
 
     def generateCandidates(self,freq,k):
         freqKminus1 = {}
@@ -43,11 +46,41 @@ class AprioriPipeline(object):
             if len(item) == (k-1): #if freq k-1 patteern
                 freqKminus1[item] = freq[item] #add to ones to generate from
         
+        freqK = []
+        #Create all combination of the keys with k-2 overlap
+        for item1 in freqKminus1:
+            for item2 in freqKminus1:
+                if ((item1 != item2) and (item1) and (item2) ): #Don't merge same items, can't do single sets
+                    if(k>2):
+                        print(list(itertools.combinations(item1,k-2)))
+                    else:
+                        if( ((item1,item2) not in freqK) and ((item2,item1) not in freqK) ):
+                            if(item1 < item2):
+                                freqK.append((item1[0],item2[0]))
+                            else:
+                                freqK.append((item2[0],item1[0]))
+                else:
+                    pass#print("same set")
+        return freqK
+
+
+        
 
     def evaluateCandidates(self,candidates):
-        pass
-        '''calculate support of candidates
-        if support is greater than the min, add to freqset'''
+        candDict = {}
+        for cand in candidates:
+            support = self.calculateSupport(cand)
+            if support >= self.minAbsSup:
+                self.freqSet[cand] = support
+                candDict[cand] = support
+
+    def calculateSupport(self,cand):
+        sup = 0
+        for transaction in self.raw:
+            if set(cand).issubset(transaction):
+                sup +=1
+        print(str(cand)+" "+str(sup))
+        return sup
 
 
     def findk1Cand(self):
@@ -59,7 +92,7 @@ class AprioriPipeline(object):
         self.dictToTxt(self.freqSet)
         
     def readTextFile(self,filepath):
-        df = pd.read_csv(filepath,header=None,sep="\n")
+        df = pd.read_csv(filepath,header=None,sep="\n")#,nrows = 1000)
         listDF = df[0].str.split(";",expand=True)
         self.minAbsSup = math.floor(self.minRelSup*listDF.shape[0])
         list = listDF.values.tolist()
@@ -75,7 +108,7 @@ class AprioriPipeline(object):
         for key, value in dict.items():
             formattedKey = ""
             for k in key:
-                formattedKey=k+";"
+                formattedKey+=k+";"
             formattedKey = formattedKey[:-1] #remove trailing semicolon
             file.write("%s:%s\n"%(value,formattedKey))
 
@@ -85,7 +118,14 @@ def main():
     apriori = AprioriPipeline(file)
     apriori.runPipe("patterns.txt")
 
+def test():
+    file = "mp1\categories.txt"
+    apri = AprioriPipeline(file)
+    apri.readTextFile(file)
+    support = apri.calculateSupport(("Pizza","Restaurants"))
+    print("support"+str(support))
 
 if __name__ == "__main__":
     main()
+
 

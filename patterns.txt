@@ -48,3 +48,48 @@
 818:Sports Bars
 1018:Ice Cream & Frozen Yogurt
 823:General Dentistry
+1369:Breakfast & Brunch;Restaurants
+2364:Restaurants;Sandwiches
+2101:Food;Restaurants
+2851:Fast Food;Restaurants
+2423:Bars;Restaurants
+1774:Burgers;Restaurants
+2657:Pizza;Restaurants
+1593:American (New);Restaurants
+1848:Italian;Restaurants
+1629:Chinese;Restaurants
+2533:Nightlife;Restaurants
+2515:Mexican;Restaurants
+798:Restaurants;Sushi Bars
+1002:Cafes;Restaurants
+848:Japanese;Restaurants
+2416:American (Traditional);Restaurants
+1115:Bakeries;Food
+2199:Coffee & Tea;Food
+1424:Food;Grocery
+1150:Food;Specialty Food
+1018:Food;Ice Cream & Frozen Yogurt
+774:Burgers;Fast Food
+4328:Bars;Nightlife
+874:Bars;Pubs
+818:Bars;Sports Bars
+1716:Auto Repair;Automotive
+1471:Event Planning & Services;Hotels & Travel
+1431:Event Planning & Services;Hotels
+1138:Shopping;Women's Clothing
+3078:Fashion;Shopping
+1586:Home & Garden;Shopping
+771:Italian;Pizza
+1442:Active Life;Fitness & Instruction
+2091:Beauty & Spas;Hair Salons
+1431:Hotels;Hotels & Travel
+1667:Beauty & Spas;Nail Salons
+1694:Doctors;Health & Medical
+1138:Fashion;Women's Clothing
+1424:Home Services;Real Estate
+874:Nightlife;Pubs
+818:Nightlife;Sports Bars
+870:Pet Services;Pets
+1195:Dentists;Health & Medical
+823:General Dentistry;Health & Medical
+823:Dentists;General Dentistry
