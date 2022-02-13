@@ -31,13 +31,13 @@ class AprioriPipeline(object):
     def apriori(self):
         freqk = self.freqSet
         k = 2
-        #while(k <= 3): #self.melt["EID"].max()+1):
-        candidates = self.generateCandidates(freqk,k)
-        #Calculates support for candidates and adds ones with high enough support to self.freqSet along with their support.
-        self.evaluateCandidates(candidates)
-        print(self.freqSet)
+        while(k <= 3): #self.melt["EID"].max()+1):
+            candidates = self.generateCandidates(freqk,k)
+            #Calculates support for candidates and adds ones with high enough support to self.freqSet along with their support.
+            self.evaluateCandidates(candidates)
+            print(self.freqSet)
+            k +=1
         self.dictToTxt(self.freqSet)
-            #k +=1
 
     def generateCandidates(self,freq,k):
         freqKminus1 = {}
@@ -52,6 +52,8 @@ class AprioriPipeline(object):
             for item2 in freqKminus1:
                 if ((item1 != item2) and (item1) and (item2) ): #Don't merge same items, can't do single sets
                     if(k>2):
+                        print("iteritems combo")
+                        print(item1)
                         print(list(itertools.combinations(item1,k-2)))
                     else:
                         if( ((item1,item2) not in freqK) and ((item2,item1) not in freqK) ):
@@ -92,7 +94,7 @@ class AprioriPipeline(object):
         self.dictToTxt(self.freqSet)
         
     def readTextFile(self,filepath):
-        df = pd.read_csv(filepath,header=None,sep="\n")#,nrows = 1000)
+        df = pd.read_csv(filepath,header=None,sep="\n",nrows = 10)
         listDF = df[0].str.split(";",expand=True)
         self.minAbsSup = math.floor(self.minRelSup*listDF.shape[0])
         list = listDF.values.tolist()
