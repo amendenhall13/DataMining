@@ -14,14 +14,22 @@ class ContSeqPatPipeline(object):
         self.minRelSup = 0.01
         self.outputFilename = ""
 
-    def runPipe(self,outputFilename,nrows):
+    def runPipe(self,outputFilename,nrows_):
         self.outputFilename = outputFilename
         #verticalDF = self.readTextFile(self.filepath,nrows)
         #verticalDF.to_excel("vertical.xlsx")
-        verticalDF = pd.read_excel("mp2_ContSeqPatterns7\vertical.xlsx")
-        #self.findk1Cand() #updates self.freqSet with the set of k=2 freq items
-        #self.apriori() #updates self.freqSet with the set of frequent items found
-        dict = {} 
+        verticalDF = pd.read_csv("mp2_ContSeqPatterns\\vertical.csv",nrows=nrows_)
+        singles = verticalDF["word"].unique()
+        for i,sing in enumerate(singles):
+            singles[i] = np.array([singles[i]])
+        print(singles)
+        #Start test vals
+        #self.minAbsSup=4
+        #testDF = pd.read_csv("mp2_ContSeqPatterns\\test.csv",nrows=nrows_)
+        #testCand = np.array([["zero","one"],["four","five"]])
+        #End test vals
+        dict = self.calculateSupport(verticalDF,singles)
+        print(dict)
         self.dictToTxt(dict)
 
 
@@ -41,6 +49,34 @@ class ContSeqPatPipeline(object):
                     print(rowIndex)  
         return vertDF
 
+    def calculateSupport(self,df,candidates):
+        '''working function to calculate support given a numpy array of candidates and a vertical DF'''
+        dict = {}
+
+        for cand in candidates:
+            mappedDFList = []
+            for word in cand:
+                filteredDF = df[df["word"]==word] #filter to just that word
+                mappedDFList.append(filteredDF)
+
+            mergedDF = mappedDFList[0] #Automatically assign first element.
+            mergedDF = mergedDF.rename(columns={"EID":"EID_"+cand[0]})
+            mergedDF = mergedDF.drop(columns="word")
+            print(mergedDF)
+            for idx,mDF in enumerate(mappedDFList[1:]): #Merge on SID and "word", idx off by one bc already assigned first one
+                mDF = mDF.rename(columns={"EID":("EID_"+cand[idx+1])})
+                mDF = mDF.drop(columns="word")
+                #Merge mDF to mergedDF
+                mergedDF = mergedDF.merge(mDF,how='inner',on="SID")
+                #Filter out non-sequential ones (this one minus one before it ==1)
+                mergedDF = mergedDF[mergedDF["EID_"+cand[idx+1]]-mergedDF["EID_"+cand[idx]]==1]
+            support = mergedDF.nunique()["SID"]
+            dict[tuple(cand)] = support
+        return dict
+
+
+                
+
     
     def dictToTxt(self,dict):
         '''Transform a dict into a text file.'''
@@ -57,7 +93,7 @@ class ContSeqPatPipeline(object):
 def main():
     file = "mp2_ContSeqPatterns\\review_samples.txt"
     contSeqPat = ContSeqPatPipeline(file)
-    contSeqPat.runPipe("patterns.txt",10000) #outputname,nrows (10,000 total in this example)
+    contSeqPat.runPipe("patterns.txt",100) #outputname,nrows (10,000 total in this example)
 
 def test():
     pass
