@@ -14,21 +14,23 @@ class ContSeqPatPipeline(object):
         self.minRelSup = 0.01
         self.outputFilename = ""
 
-    def runPipe(self,outputFilename,nrows_):
+    def runPipe(self,outputFilename):
         self.outputFilename = outputFilename
         #verticalDF = self.readTextFile(self.filepath,nrows)
         #verticalDF.to_excel("vertical.xlsx")
-        verticalDF = pd.read_csv("mp2_ContSeqPatterns\\vertical.csv",nrows=nrows_)
+        #nrows_ = 612730
+        verticalDF = pd.read_csv("mp2_ContSeqPatterns\\vertical.csv")#,nrows=nrows_)
         singles = verticalDF["word"].unique()
         for i,sing in enumerate(singles):
             singles[i] = np.array([singles[i]])
-        print(singles)
+        self.minAbsSup = 100
+        dict = self.calculateSupportAndFilter(verticalDF,singles)
         #Start test vals
         #self.minAbsSup=4
         #testDF = pd.read_csv("mp2_ContSeqPatterns\\test.csv",nrows=nrows_)
         #testCand = np.array([["zero","one"],["four","five"]])
+        #dict = self.calculateSupportAndFilter(testDF,testCand)
         #End test vals
-        dict = self.calculateSupport(verticalDF,singles)
         print(dict)
         self.dictToTxt(dict)
 
@@ -49,33 +51,38 @@ class ContSeqPatPipeline(object):
                     print(rowIndex)  
         return vertDF
 
-    def calculateSupport(self,df,candidates):
+    def calculateSupportAndFilter(self,df,candidates):
         '''working function to calculate support given a numpy array of candidates and a vertical DF'''
         dict = {}
 
-        for cand in candidates:
+        for cand in candidates:#full candidate sequences
             mappedDFList = []
-            for word in cand:
+            for word in cand: #words in cand seq
                 filteredDF = df[df["word"]==word] #filter to just that word
                 mappedDFList.append(filteredDF)
 
             mergedDF = mappedDFList[0] #Automatically assign first element.
-            mergedDF = mergedDF.rename(columns={"EID":"EID_"+cand[0]})
+            mergedDF = mergedDF.rename(columns={"EID":"EID_"+str(cand[0])})
             mergedDF = mergedDF.drop(columns="word")
-            print(mergedDF)
             for idx,mDF in enumerate(mappedDFList[1:]): #Merge on SID and "word", idx off by one bc already assigned first one
-                mDF = mDF.rename(columns={"EID":("EID_"+cand[idx+1])})
+                mDF = mDF.rename(columns={"EID":("EID_"+str(cand[idx+1]))})
                 mDF = mDF.drop(columns="word")
                 #Merge mDF to mergedDF
                 mergedDF = mergedDF.merge(mDF,how='inner',on="SID")
                 #Filter out non-sequential ones (this one minus one before it ==1)
                 mergedDF = mergedDF[mergedDF["EID_"+cand[idx+1]]-mergedDF["EID_"+cand[idx]]==1]
             support = mergedDF.nunique()["SID"]
-            dict[tuple(cand)] = support
+            if(support >= self.minAbsSup): #Filter if too low of support
+                dict[tuple(cand)] = support
+                print("passed: "+str(cand) + " "+str(support))
+            else:
+                print(str(cand) + " "+str(support))
         return dict
 
-
-                
+    def generateCandidates(self,candidates):
+        '''A function to take a list of candidates and merge up a level'''
+        pass
+    
 
     
     def dictToTxt(self,dict):
@@ -93,7 +100,7 @@ class ContSeqPatPipeline(object):
 def main():
     file = "mp2_ContSeqPatterns\\review_samples.txt"
     contSeqPat = ContSeqPatPipeline(file)
-    contSeqPat.runPipe("patterns.txt",100) #outputname,nrows (10,000 total in this example)
+    contSeqPat.runPipe("patterns.txt") #outputname,nrows (10,000 total in this example)
 
 def test():
     pass

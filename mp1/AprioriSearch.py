@@ -10,6 +10,9 @@ import numpy as np
 import math
 from collections import Counter
 import itertools
+from mlxtend.preprocessing import TransactionEncoder
+from mlxtend.frequent_patterns import apriori
+
 
 class AprioriPipeline(object):
     def __init__(self,filepath_):
@@ -20,14 +23,14 @@ class AprioriPipeline(object):
         self.minAbsSup = 771 #reset in readTextFile
         self.minRelSup = 0.01
         self.outputFilename = ""
+        self.numRows = 0
 
-
-    def runPipe(self,outputFilename):
+        #Me trying and failing to implement manually
+    '''def runPipe2(self,outputFilename):
         self.outputFilename = outputFilename
         self.melt = self.readTextFile(self.filepath)
         self.findk1Cand() #updates self.freqSet with the set of k=2 freq items
-        self.apriori() #updates self.freqSet with the set of frequent items found
-        
+        self.apriori() #updates self.freqSet with the set of frequent items found 
     def apriori(self):
         freqk = self.freqSet
         k = 2
@@ -38,7 +41,6 @@ class AprioriPipeline(object):
             print(self.freqSet)
             k +=1
         self.dictToTxt(self.freqSet)
-
     def generateCandidates(self,freq,k):
         freqKminus1 = {}
         #find all of the length-1 patterns
@@ -64,10 +66,6 @@ class AprioriPipeline(object):
                 else:
                     pass#print("same set")
         return freqK
-
-
-        
-
     def evaluateCandidates(self,candidates):
         candDict = {}
         for cand in candidates:
@@ -75,7 +73,6 @@ class AprioriPipeline(object):
             if support >= self.minAbsSup:
                 self.freqSet[cand] = support
                 candDict[cand] = support
-
     def calculateSupport(self,cand):
         sup = 0
         for transaction in self.raw:
@@ -83,8 +80,6 @@ class AprioriPipeline(object):
                 sup +=1
         print(str(cand)+" "+str(sup))
         return sup
-
-
     def findk1Cand(self):
         counts = Counter(self.melt["category"])
         keys = counts.keys()
@@ -92,8 +87,7 @@ class AprioriPipeline(object):
             if (counts[c] >= self.minAbsSup) and (c not in self.freqSet):
                 self.freqSet[(c,)] = counts[c]
         self.dictToTxt(self.freqSet)
-        
-    def readTextFile(self,filepath):
+    def readTextFile2(self,filepath):
         df = pd.read_csv(filepath,header=None,sep="\n",nrows = 10)
         listDF = df[0].str.split(";",expand=True)
         self.minAbsSup = math.floor(self.minRelSup*listDF.shape[0])
@@ -104,7 +98,6 @@ class AprioriPipeline(object):
         meltDF = pd.melt(listDF,id_vars=["TID"],var_name="EID",value_name="category")
         meltDF = meltDF.dropna()
         return meltDF
-    
     def dictToTxt(self,dict):
         file = open(self.outputFilename,"w")
         for key, value in dict.items():
@@ -114,6 +107,49 @@ class AprioriPipeline(object):
             formattedKey = formattedKey[:-1] #remove trailing semicolon
             file.write("%s:%s\n"%(value,formattedKey))
 
+
+    def runPipe(self,outputFilename):
+        self.outputFilename = outputFilename
+        self.raw = self.readTextFile(self.filepath)
+        apri = apriori(self.raw,min_support=self.minRelSup,use_colnames=True)
+        print("finishedApriori")
+        self.dfToTxt(apri)
+        print("finishedText")'''
+
+    #Working implmentation using library
+    def readTextFile(self,filepath):
+        '''Reads text file and sets minAbsSup to be correct'''
+        nrows_ = 10
+        df = pd.read_csv(filepath,header=None,sep="\n")#nrows=nrows_)
+        listDF = df[0].str.split(";",expand=True)
+        list_ = listDF.values.tolist()
+        filtList = []
+        for l in list_:
+            filtered_list = list(filter(None,l))
+            filtList.append(filtered_list)
+        te = TransactionEncoder()
+        te_ary = te.fit(filtList).transform(filtList)
+        df = pd.DataFrame(te_ary, columns=te.columns_)
+
+        self.minAbsSup = math.floor(self.minRelSup*listDF.shape[0])
+        self.numRows = listDF.shape[0]
+        print("finishedReading")
+        return df
+
+    def dfToTxt(self,df):
+        file = open(self.outputFilename,"w")
+        for index,row in df.iterrows():
+            value = row["support"]*self.numRows
+            listItem = list(row["itemsets"])
+            formattedKey = ""
+            for k in listItem:
+                formattedKey+=k+";"
+            formattedKey = formattedKey[:-1] #remove trailing semicolon
+            file.write("%s:%s\n"%(value,formattedKey))
+
+            
+
+    
 
 def main():
     file = "mp1\categories.txt"
