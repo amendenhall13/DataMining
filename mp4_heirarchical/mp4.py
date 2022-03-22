@@ -38,8 +38,8 @@ class aggCluster:
                 if(pt1 != pt2):
                     dist = self.calcDist(points[i1],points[i2])
                     distMatrix[i1][i2] = dist
-        print("distMatrix")
-        print(distMatrix)
+        #print("distMatrix")
+        #print(distMatrix)
         maxDist = max(max(distMatrix))
         minDist = min(min(distMatrix))
         #Create Cluster Matrix
@@ -49,9 +49,10 @@ class aggCluster:
             for ic,c in enumerate(range(len(clusters))):
                 clustMatrix[ir].append(-1)
     
-        
+        #temp = 0
         #Loop through for clustering
         while len(set(clusters)) > self.k:
+            #print("loop")
             #update clustMatrix by link type
             if self.m == 0:
                 #Single link (min)
@@ -61,7 +62,6 @@ class aggCluster:
                 #Fill Cluster matrix
                 for ir,r in enumerate(clusters):
                     for ic,c in enumerate(clusters):
-                        print("fillCluster")
                         if(r != c): #don't compare same cluster
                             if(clustMatrix[r][c] == -1): #if hasn't been visited yet, use val
                                 clustMatrix[r][c] = distMatrix[ir][ic]
@@ -78,7 +78,6 @@ class aggCluster:
                 #Fill Cluster matrix
                 for ir,r in enumerate(clusters):
                     for ic,c in enumerate(clusters):
-                        print("fillCluster")
                         if(r != c): #don't compare same cluster
                             if(clustMatrix[r][c] == -1): #if hasn't been visited yet, use val
                                 clustMatrix[r][c] = distMatrix[ir][ic]
@@ -86,11 +85,34 @@ class aggCluster:
                                 clustMatrix[r][c] = distMatrix[ir][ic]
                             else:
                                 pass
-                print(clustMatrix)
+                #print(clustMatrix)
             else:
                 #Average link
-                pass
-
+                for ir,r in enumerate(clusters):
+                    for ic,c in enumerate(clusters):
+                        clustMatrix[ir][ic] = -1
+                countMatrix = [] #used to store number of 
+                for ir,r in enumerate(range(len(clusters))):
+                    countMatrix.append([])
+                    for ic,c in enumerate(range(len(clusters))):
+                        countMatrix[ir].append(0)
+                #Fill Cluster matrix and count matrix
+                for ir,r in enumerate(clusters):
+                    for ic,c in enumerate(clusters):
+                        if(r != c): #don't compare same cluster
+                            if(clustMatrix[r][c] == -1): #if hasn't been visited yet, use val
+                                clustMatrix[r][c] = distMatrix[ir][ic]
+                                countMatrix[r][c] +=1
+                            else:
+                                clustMatrix[r][c] = (clustMatrix[r][c]+distMatrix[ir][ic])
+                                countMatrix[r][c] +=1
+                
+                for ir,r in enumerate(clustMatrix):
+                    for ic,c in enumerate(r):
+                        if(c!=-1) and (countMatrix[ir][ic]!=0):
+                            clustMatrix[ir][ic] = c/countMatrix[ir][ic]
+                #print(clustMatrix)
+                #print(countMatrix)
             #Find min value and row/col index to find clusters to merge
             minRow = -1
             minCol = -1
@@ -101,7 +123,9 @@ class aggCluster:
                         minVal = val
                         minRow = ir
                         minCol = ic
-
+            #print(minVal)
+            #print(minRow)
+            #print(minCol)
             #Merge the clusters associated with that value.
             '''merge clusters'''
             minClust = min(minRow,minCol)
@@ -109,9 +133,10 @@ class aggCluster:
                 if((clus == minRow) or (clus == minCol)):
                     clusters[i] = minClust
             #print(clusters)
+            #temp +=1
         for i in clusters:
             print(i)
-
+        
 
 
 
@@ -152,7 +177,7 @@ class aggCluster:
 
 
 def main():
-    file = "mp4_heirarchical\\sample2.txt"
+    file = "mp4_heirarchical\\sample1.txt"
     kmeans = aggCluster(file)
     kmeans.runPipe("clusters.txt","code")
 
