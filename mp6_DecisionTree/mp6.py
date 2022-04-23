@@ -59,22 +59,41 @@ class DecisionTree(object):
     def calcInfoGain(self,key,cand):
         print("key"+str(key)+" cand "+str(cand))
         infoSplit = 0
-        infoDLow = 0
-        infoDHigh = 0
         attrValList = []
         for item in self.trainAttr:
             attrValList.append(item[key])
         
+        #Generate counts for confusion matrix
         labelsList = list(set(self.trainLabels))
         counts = [ [0]*2 for _ in range(len(labelsList))]
+        totalSum = 0
         for i,label in enumerate(self.trainLabels):
+            totalSum +=1
             labelRow = labelsList.index(label)
             attr = attrValList[i]
             if(attr < cand): #Below candidate threshold value
                 counts[labelRow][0] += 1 #Add a count to the first in the list
             if(attr > cand):
                 counts[labelRow][1] += 1
-        print(counts)
+        
+        #Calculate totals for division
+        lowSum = 0
+        highSum = 0
+        for labelRow in counts:
+            lowSum += labelRow[0]
+            highSum += labelRow[1]
+        #Calculate info gain for less than threshold
+        infoDLow = 0
+        infoDHigh = 0
+        for labelRow in counts:
+            if(labelRow[0] !=0):
+                infoDLow -= labelRow[0]/lowSum*math.log(labelRow[0]/lowSum,2)
+            if(labelRow[1] !=0):
+                infoDHigh -= labelRow[1]/highSum*math.log(labelRow[1]/highSum,2)
+        print(infoDLow)
+        print(infoDHigh)
+        print(totalSum)
+        
         gain = self.infoLabel-infoSplit
         return gain
 
