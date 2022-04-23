@@ -15,9 +15,8 @@ class DecisionTree(object):
     def runPipe(self,output,tp):
         self.outFilename = output
         self.formatInputArray(tp)
-        [attrKeys, splitCand] = self.findSplitVal()
-        print(attrKeys)
-        print(splitCand)
+        val = self.findSplitVal()
+        
 
     def findSplitVal(self):
         all_keys = list(set().union(*(d.keys() for d in self.trainAttr)))
@@ -27,7 +26,22 @@ class DecisionTree(object):
             attrVals = [d[k] for d in self.trainAttr if k in d]
             splitCand = self.findSplitCandidates(attrVals)
             splitCandidates.append(splitCand)
-        return [all_keys, splitCandidates]
+        #Calculate information gain for each candidate
+        infoGain = []
+        infoGainAttr = []
+        infoGainCand = []
+        infoCount = 0
+        self.infoLabel = self.calcInfoLabel()
+        for i,key in enumerate(all_keys):
+            for j,cand in enumerate(splitCandidates[i]):
+                infoGainAttr.append(key)
+                infoGainCand.append(cand)
+                infoGain.append(self.calcInfoGain(key,cand))
+        #Find index of max info gain
+        '''TBD'''
+
+                
+
 
     def findSplitCandidates(self,arr):
         '''Given an array, finds all of the split candidates from it'''
@@ -42,10 +56,37 @@ class DecisionTree(object):
         return candList
 
     
-    def calcInfoGain(self):
-        pass
+    def calcInfoGain(self,key,cand):
+        print("key"+str(key)+" cand "+str(cand))
+        infoSplit = 0
+        infoDLow = 0
+        infoDHigh = 0
+        attrValList = []
+        for item in self.trainAttr:
+            attrValList.append(item[key])
+        
+        labelsList = list(set(self.trainLabels))
+        counts = [ [0]*2 for _ in range(len(labelsList))]
+        for i,label in enumerate(self.trainLabels):
+            labelRow = labelsList.index(label)
+            attr = attrValList[i]
+            if(attr < cand): #Below candidate threshold value
+                counts[labelRow][0] += 1 #Add a count to the first in the list
+            if(attr > cand):
+                counts[labelRow][1] += 1
+        print(counts)
+        gain = self.infoLabel-infoSplit
+        return gain
 
-    
+    def calcInfoLabel(self):
+        counts = list(dict(collections.Counter(self.trainLabels)).values())
+        totalCount = sum(counts)
+        infoGainLabel = 0
+        for val in counts:
+            infoGainLabel -= val/totalCount*math.log(val/totalCount,2)
+        return infoGainLabel
+
+
     def classifyVals(self):
         pass  
 
