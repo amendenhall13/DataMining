@@ -3,7 +3,7 @@ import numpy as np
 import math
 import collections
 
-class ClusterEval:
+class ClusterEval(object):
     def __init__(self,file):
         self.inArray = []
         self.n = 0
