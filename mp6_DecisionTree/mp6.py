@@ -88,7 +88,8 @@ class DecisionTree(object):
         except: pass
 
         classified = self.classifyVals(splitCriteria,splitCrit2Low,splitCrit2High)
-        print(classified)
+        for val in classified:
+            print(val)
 
     def splitData(self,splitCrit,dataAttr,dataLabels):
         splitAttr = splitCrit[0]
@@ -135,6 +136,7 @@ class DecisionTree(object):
     def findSplitCandidates(self,arr):
         '''Given an array, finds all of the split candidates from it'''
         setArr = list(set(arr))
+        setArr.sort()
         itemPrev = setArr[0]
         candList = []
         for i in range(1,len(setArr)):
@@ -255,22 +257,49 @@ class DecisionTree(object):
                     testAttr.append(rowAttr)
                 else:
                     trainLabels.append(rowLabel)
-                    trainAttr.append(rowAttr)            
+                    trainAttr.append(rowAttr) 
+            #print(testLabels)
+            #print(testAttr)
+            #print(trainLabels)
+            #print(trainAttr)
         if(tp=="hack"):
-            '''Not implemented yet'''
+            testLabels = []
+            testAttr = []
+            trainLabels = []
+            trainAttr = []
             inArray = []
             stop = False
             while not stop:
                 try:
                     temp = input()
-                    separate = temp.split()
-                    separate[0] = float(separate[0])
-                    separate[1] = float(separate[1])
+                    separate = temp.split(" ")
                     inArray.append(separate)
                 except:
                     stop = True
-            self.inArray = inArray
+            #print(inArray)
+            for i,row in enumerate(inArray):
+                rowAttr = {}
+                rowLabel = -2
+                for j,item in enumerate(row):
+                    if j == 0:
+                        rowLabel = int(float(item))
+                    else:
+                        #put attr stuff into a dict
+                        valList = item.split(":")
+                        attrNum = int(float(valList[0].strip('')))
+                        #split attr name and value
+                        attrVal = float(valList[1].strip(''))
+                        rowAttr[attrNum] = attrVal
+                    
+                #Append row to new data structures based on test or train
+                if(rowLabel == -1):
+                    testLabels.append(rowLabel)
+                    testAttr.append(rowAttr)
+                else:
+                    trainLabels.append(rowLabel)
+                    trainAttr.append(rowAttr)
         
+        #Final label addition
         self.testLabels = testLabels
         self.testAttr = testAttr
         self.trainLabels = trainLabels
@@ -279,7 +308,7 @@ class DecisionTree(object):
 
 
 def main():
-    file = "mp6_DecisionTree\\input24.txt"
+    file = "mp6_DecisionTree\\sample0.txt"
     dTree = DecisionTree(file)
     dTree.runPipe("output.txt","code")
 
