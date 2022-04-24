@@ -11,20 +11,30 @@ class DecisionTree(object):
         self.testLabels = []
         self.trainAttr = []
         self.testAttr = []
+        self.labelSet = []
+        self.splitAttr = []
+        self.splitLabels = []
 
     def runPipe(self,output,tp):
         self.outFilename = output
         self.formatInputArray(tp)
-        val = self.findSplitVal()
-        print(val)
-        
+        splitCriteria = [self.findSplitVal(self.trainAttr,self.trainLabels)]
+        #split the values to make splitAttr and splitLabels
+        if(not self.isPure(splitCriteria)):
+            pass#splitCriteria.append(self.findSplitVal(self.splitAttr,self.splitLabels))
+        else:
+            splitCriteria.append([-1,-1])
+        classified = self.classifyVals(splitCriteria)
 
-    def findSplitVal(self):
-        all_keys = list(set().union(*(d.keys() for d in self.trainAttr)))
+    def isPure(self,splitCriteria1):
+        pass
+
+    def findSplitVal(self,dataArr,dataLabels):
+        all_keys = list(set().union(*(d.keys() for d in dataArr)))
         splitCandidates = [] #will align with all_keys to show
         for k in all_keys:
             #Find all the values of that attribute
-            attrVals = [d[k] for d in self.trainAttr if k in d]
+            attrVals = [d[k] for d in dataArr if k in d]
             splitCand = self.findSplitCandidates(attrVals)
             splitCandidates.append(splitCand)
         #Calculate information gain for each candidate
@@ -32,20 +42,18 @@ class DecisionTree(object):
         infoGainAttr = []
         infoGainCand = []
         infoCount = 0
-        self.infoLabel = self.calcInfoLabel()
+        self.infoLabel = self.calcInfoLabel(dataLabels)
         for i,key in enumerate(all_keys):
             for j,cand in enumerate(splitCandidates[i]):
                 infoGainAttr.append(key)
                 infoGainCand.append(cand)
-                infoGain.append(self.calcInfoGain(key,cand))
+                infoGain.append(self.calcInfoGain(key,cand,dataArr,dataLabels))
+        print(infoGain)
         maxGain = max(infoGain)
         maxGainIndex = infoGain.index(maxGain)
         
         #Find index of max info gain
         return [infoGainAttr[maxGainIndex],infoGainCand[maxGainIndex]]
-
-                
-
 
     def findSplitCandidates(self,arr):
         '''Given an array, finds all of the split candidates from it'''
@@ -58,20 +66,20 @@ class DecisionTree(object):
             candList.append(cand)
             itemPrev = item
         return candList
-
-    
-    def calcInfoGain(self,key,cand):
-        print("key"+str(key)+" cand "+str(cand))
+ 
+    def calcInfoGain(self,key,cand,attrDict,labList):
+        #print("key"+str(key)+" cand "+str(cand))
         infoSplit = 0
         attrValList = []
-        for item in self.trainAttr:
+        for item in attrDict:
             attrValList.append(item[key])
         
         #Generate counts for confusion matrix
-        labelsList = list(set(self.trainLabels))
+        labelsList = list(set(labList))
+        self.labelSet = labelsList
         counts = [ [0]*2 for _ in range(len(labelsList))]
         totalSum = 0
-        for i,label in enumerate(self.trainLabels):
+        for i,label in enumerate(labList):
             totalSum +=1
             labelRow = labelsList.index(label)
             attr = attrValList[i]
@@ -98,8 +106,8 @@ class DecisionTree(object):
         gain = self.infoLabel-infoSplit
         return gain
 
-    def calcInfoLabel(self):
-        counts = list(dict(collections.Counter(self.trainLabels)).values())
+    def calcInfoLabel(self,dataLabels):
+        counts = list(dict(collections.Counter(dataLabels)).values())
         totalCount = sum(counts)
         infoGainLabel = 0
         for val in counts:
@@ -107,8 +115,23 @@ class DecisionTree(object):
         return infoGainLabel
 
 
-    def classifyVals(self):
-        pass  
+    def classifyVals(self,splitCriteria):
+        print(splitCriteria)
+        firstCrit = splitCriteria[0]
+        attr1 = firstCrit[0]
+        val1 = firstCrit[1]
+        secCrit = splitCriteria[1]
+        attr2 = secCrit[0]
+        val2 = secCrit[1]
+        #split into first two groups
+        classifiedList = []
+        for item in self.testAttr:
+            if(item[attr1] < val1):
+                classifiedList.append(self.labelSet[0])
+            else:
+                classifiedList.append(self.labelSet[1])
+        print(classifiedList)                
+
 
     def formatInputArray(self,tp):
         if(tp=="code"): #Read input with pandas from text file for testing.
