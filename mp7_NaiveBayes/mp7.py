@@ -148,18 +148,13 @@ class NaiveBayes(object):
             #self.classList.sort()
             self.animalName = [trainAnimalName,testAnimalName] #Probably don't need it, stored anyway.
             return [trainVals,trainLabels,testVals]
-
-            
-            
-            
            
         '''if(tp=="hack"):
             pass'''
-        return [0,1]
-        '''return [knownList,unknownList]'''
+
 
 def main():
-    file = "mp7_NaiveBayes\\sample0.txt"
+    file = "mp7_NaiveBayes\\input5.txt"
     dTree = NaiveBayes(file)
     dTree.runPipe("output.txt","code")
 
