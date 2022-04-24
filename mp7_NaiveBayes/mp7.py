@@ -62,9 +62,6 @@ class NaiveBayes(object):
             pXunderC.append(colProduct)
         return pXunderC
             
-            
-                
-
     def makeConfusionMatrix(self,trainVals,trainLabels):
         '''Create the confusion matrix of the counts first so don't have to repeatedly loop through'''
         #Make the optionsList by filling in 0/1 for all values and then changing the non-boolean one
@@ -111,46 +108,55 @@ class NaiveBayes(object):
             df = df[0].str.split(",",expand=True)
             listVals = df.values.tolist()
 
-            self.attrList = listVals[0]
-            labelIndex = self.attrList.index("class_type")
-            nameIndex = self.attrList.index("animal_name")
-            self.attrList = [x for i,x in enumerate(listVals[0]) if (i!=labelIndex and i!=nameIndex)]
-            listVals = listVals[1:]
-            trainLabels = []
-            trainVals = []
-            trainAnimalName = []
-            testLabels = []
-            testVals = []
-            testAnimalName = []
-            #split values into 6 lists
-            for val in listVals:
-                if(val[labelIndex] != '-1'):
-                    trainLabels.append(val[labelIndex])
-                    trainAnimalName.append(val[nameIndex])
-                    trainVals.append([x for i,x in enumerate(val) if (i!=labelIndex and i!=nameIndex)]) #add all other values to trainVals
-                else:
-                    testLabels.append(val[labelIndex])
-                    testAnimalName.append(val[nameIndex])
-                    testVals.append([x for i,x in enumerate(val) if (i!=labelIndex and i!=nameIndex)]) #add all other values to testVals
-            #cast appropriate lists as floats
-            for i,row in enumerate(trainVals):
-                for j,col in enumerate(row):
-                    trainVals[i][j] = float(trainVals[i][j])
-            for i,row in enumerate(testVals):
-                for j,col in enumerate(row):
-                    testVals[i][j] = float(testVals[i][j])
-            for i,row in enumerate(trainLabels):
-                    trainLabels[i] = float(trainLabels[i])
-            for i,row in enumerate(testLabels):
-                    testLabels[i] = float(testLabels[i])
+        if(tp=="hack"):
+            inArray = []
+            stop = False
+            while not stop:
+                try:
+                    temp = input()
+                    separate = temp.split(",")
+                    inArray.append(separate)
+                except:
+                    stop = True
+            listVals = inArray
+        #Both code have this happen
+        self.attrList = listVals[0]
+        labelIndex = self.attrList.index("class_type")
+        nameIndex = self.attrList.index("animal_name")
+        self.attrList = [x for i,x in enumerate(listVals[0]) if (i!=labelIndex and i!=nameIndex)]
+        listVals = listVals[1:]
+        trainLabels = []
+        trainVals = []
+        trainAnimalName = []
+        testLabels = []
+        testVals = []
+        testAnimalName = []
+        #split values into 6 lists
+        for val in listVals:
+            if(val[labelIndex] != '-1'):
+                trainLabels.append(val[labelIndex])
+                trainAnimalName.append(val[nameIndex])
+                trainVals.append([x for i,x in enumerate(val) if (i!=labelIndex and i!=nameIndex)]) #add all other values to trainVals
+            else:
+                testLabels.append(val[labelIndex])
+                testAnimalName.append(val[nameIndex])
+                testVals.append([x for i,x in enumerate(val) if (i!=labelIndex and i!=nameIndex)]) #add all other values to testVals
+        #cast appropriate lists as floats
+        for i,row in enumerate(trainVals):
+            for j,col in enumerate(row):
+                trainVals[i][j] = float(trainVals[i][j])
+        for i,row in enumerate(testVals):
+            for j,col in enumerate(row):
+                testVals[i][j] = float(testVals[i][j])
+        for i,row in enumerate(trainLabels):
+                trainLabels[i] = float(trainLabels[i])
+        for i,row in enumerate(testLabels):
+                testLabels[i] = float(testLabels[i])
 
-            #self.classList = list(set(trainLabels)) # Class list is static, even if train set doesn't have it
-            #self.classList.sort()
-            self.animalName = [trainAnimalName,testAnimalName] #Probably don't need it, stored anyway.
-            return [trainVals,trainLabels,testVals]
-           
-        '''if(tp=="hack"):
-            pass'''
+        #self.classList = list(set(trainLabels)) # Class list is static, even if train set doesn't have it
+        #self.classList.sort()
+        self.animalName = [trainAnimalName,testAnimalName] #Probably don't need it, stored anyway.
+        return [trainVals,trainLabels,testVals]
 
 
 def main():
