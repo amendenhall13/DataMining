@@ -16,6 +16,7 @@ class DecisionTree(object):
         self.outFilename = output
         self.formatInputArray(tp)
         val = self.findSplitVal()
+        print(val)
         
 
     def findSplitVal(self):
@@ -37,8 +38,11 @@ class DecisionTree(object):
                 infoGainAttr.append(key)
                 infoGainCand.append(cand)
                 infoGain.append(self.calcInfoGain(key,cand))
+        maxGain = max(infoGain)
+        maxGainIndex = infoGain.index(maxGain)
+        
         #Find index of max info gain
-        '''TBD'''
+        return [infoGainAttr[maxGainIndex],infoGainCand[maxGainIndex]]
 
                 
 
@@ -90,10 +94,7 @@ class DecisionTree(object):
                 infoDLow -= labelRow[0]/lowSum*math.log(labelRow[0]/lowSum,2)
             if(labelRow[1] !=0):
                 infoDHigh -= labelRow[1]/highSum*math.log(labelRow[1]/highSum,2)
-        print(infoDLow)
-        print(infoDHigh)
-        print(totalSum)
-        
+        infoSplit = lowSum/totalSum*infoDLow + highSum/totalSum*infoDHigh
         gain = self.infoLabel-infoSplit
         return gain
 
