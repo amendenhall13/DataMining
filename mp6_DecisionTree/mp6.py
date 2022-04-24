@@ -299,7 +299,7 @@ class DecisionTree(object):
 
 
 def main():
-    file = "mp6_DecisionTree\\sample0.txt"
+    file = "mp6_DecisionTree\\input24.txt"
     dTree = DecisionTree(file)
     dTree.runPipe("output.txt","code")
 
