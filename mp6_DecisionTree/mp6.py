@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 import math
 import collections
+import statistics
+from statistics import mode
 
 class DecisionTree(object):
     def __init__(self,file):
@@ -21,21 +23,74 @@ class DecisionTree(object):
         self.outFilename = output
         self.formatInputArray(tp)
         splitCriteria = self.findSplitVal(self.trainAttr,self.trainLabels)
-        print(splitCriteria)
         #split the values to make splitAttr and splitLabels
-        self.splitData(splitCriteria,self.trainAttr,self.trainLabels)
+        [self.splitAttrLow, self.splitLabelsLow, self.splitAttrHigh,self.splitLabelsHigh] = self.splitData(splitCriteria,self.trainAttr,self.trainLabels)
         splitCrit2High = []
         splitCrit2Low = []
+        #declare all vars
+        splitAttr2HighLow = []
+        splitLabels2HighLow = []
+        splitAttr2HighHigh = []
+        splitLabels2HighHigh = []
+        splitAttr2LowLow = []
+        splitLabels2LowLow = []
+        splitAttr2LowHigh = []
+        splitLabels2LowHigh = []
+
         if(not len(set(self.splitLabelsHigh))==1): #Unique set is pure = len is one
             splitCrit2High = self.findSplitVal(self.splitAttrHigh,self.splitLabelsHigh)
+            [splitAttr2HighLow, splitLabels2HighLow, splitAttr2HighHigh,splitLabels2HighHigh] = self.splitData(splitCrit2High,self.splitAttrHigh,self.splitLabelsHigh)
+
         else:
             print("high values pure, no more splitting")
         if(not len(set(self.splitLabelsLow))==1): #Unique set is pure = len is one
             splitCrit2Low = self.findSplitVal(self.splitAttrLow,self.splitLabelsLow)
+            [splitAttr2LowLow, splitLabels2LowLow, splitAttr2LowHigh,splitLabels2LowHigh] = self.splitData(splitCrit2Low,self.splitAttrLow,self.splitLabelsLow)
         else:
             print("low values pure, no more splitting")
-        print(splitCrit2High)
+
+        try:
+            split1HighLabel = mode(self.splitLabelsHigh)
+        except:pass
+        try:
+            split1LowLabel = mode(self.splitLabelsLow)
+        except:pass
+        try:
+            split2HighLowLabel = mode(splitLabels2HighLow)
+        except:pass
+        try:
+            split2HighHighLabel = mode(splitLabels2HighHigh)
+        except:pass
+        try:
+            split2LowLowLabel = mode(splitLabels2LowLow)
+        except:pass
+        try:
+            split2LowHighLabel = mode(splitLabels2LowHigh)
+        except:pass
+        
+        try:
+            splitCriteria.append(split1LowLabel)
+        except:pass
+        try:
+            splitCriteria.append(split1HighLabel)
+        except: pass
+        try:
+            splitCrit2Low.append(split2LowLowLabel)
+        except: pass
+        try:
+            splitCrit2Low.append(split2LowHighLabel)
+        except: pass
+        try:
+            splitCrit2High.append(split2HighLowLabel)
+        except: pass
+        try:
+            splitCrit2High.append(split2HighHighLabel)
+        except: pass
+
+        print(splitCriteria)
         print(splitCrit2Low)
+        print(splitCrit2High)
+
         classified = self.classifyVals(splitCriteria,splitCrit2Low,splitCrit2High)
         print(classified)
 
@@ -53,13 +108,8 @@ class DecisionTree(object):
             else:
                 splitAttrHigh.append(attr)
                 splitLabHigh.append(dataLabels[i])
-        self.splitAttrHigh = splitAttrHigh
-        self.splitLabelsHigh = splitLabHigh
-        self.splitAttrLow = splitAttrLow
-        self.splitLabelsLow = splitLabLow
+        return [splitAttrLow, splitLabLow, splitAttrHigh,splitLabHigh]
 
-    def isPure(self,splitCriteria1):
-        pass
 
     def findSplitVal(self,dataArr,dataLabels):
         all_keys = list(set().union(*(d.keys() for d in dataArr)))
@@ -80,10 +130,6 @@ class DecisionTree(object):
                 infoGainAttr.append(key)
                 infoGainCand.append(cand)
                 infoGain.append(self.calcInfoGain(key,cand,dataArr,dataLabels))
-        print("infoGain, FindSplitVal")
-        print(infoGain)
-        print(infoGainAttr)
-        print(infoGainCand)
         maxGain = max(infoGain)
         maxGainIndex = infoGain.index(maxGain)
         
@@ -150,21 +196,48 @@ class DecisionTree(object):
         return infoGainLabel
 
 
-    def classifyVals(self,splitCriteria):
-        #print(splitCriteria)
-        firstCrit = splitCriteria[0]
-        attr1 = firstCrit[0]
-        val1 = firstCrit[1]
-        secCrit = splitCriteria[1]
-        attr2 = secCrit[0]
-        val2 = secCrit[1]
+    def classifyVals(self,splitCriteria,splitCrit2Low,splitCrit2High):
         #split into first two groups
+        attr1 = splitCriteria[0]
+        splitVal1 = splitCriteria[1]
+        lowLabel1 = splitCriteria[2]
+        highLabel1 = splitCriteria[3]
         classifiedList = []
         for item in self.testAttr:
-            if(item[attr1] < val1):
-                classifiedList.append(self.labelSet[0])
+            print("Item Tested: "+str(item))
+            if(item[attr1] < splitVal1):
+                print("split1Low")
+                if(any(splitCrit2Low)): #If there's stuff in the list
+                    attr2Low = splitCrit2Low[0]
+                    splitVal2Low = splitCrit2Low[1]
+                    lowLabel2Low = splitCrit2Low[2]
+                    highLabel2Low = splitCrit2Low[3]
+                    if(item[attr2Low]<splitVal2Low):
+                        print("split2LowLow")
+                        classifiedList.append(lowLabel2Low)
+                    else:
+                        print("split2LowHigh")
+                        classifiedList.append(highLabel2Low)
+                else:
+                    print("No split2Low")
+                    classifiedList.append(lowLabel1)#If there's no sub-classification, just use that level.
             else:
-                classifiedList.append(self.labelSet[1])
+                print("split1High")
+                if(any(splitCrit2High)): #If there's stuff in the list
+                    attr2High = splitCrit2High[0]
+                    splitVal2High = splitCrit2High[1]
+                    lowLabel2High = splitCrit2High[2]
+                    highLabel2High = splitCrit2High[3]
+                    if(item[attr2High]<splitVal2High):
+                        print("split2HighLow")
+                        classifiedList.append(lowLabel2High)
+                    else:
+                        print("split2HighHigh")
+                        classifiedList.append(highLabel2High)
+                else:
+                    print("No split2High")
+                    classifiedList.append(highLabel1)#If there's no sub-classification, just use that level.
+        return(classifiedList)
         #print("classifiedList")
         #print(classifiedList)                
 
