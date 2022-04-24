@@ -12,19 +12,51 @@ class DecisionTree(object):
         self.trainAttr = []
         self.testAttr = []
         self.labelSet = []
-        self.splitAttr = []
-        self.splitLabels = []
+        self.splitAttrLow = []
+        self.splitLabelsLow = []
+        self.splitAttrHigh = []
+        self.splitLabelsHigh = []
 
     def runPipe(self,output,tp):
         self.outFilename = output
         self.formatInputArray(tp)
-        splitCriteria = [self.findSplitVal(self.trainAttr,self.trainLabels)]
+        splitCriteria = self.findSplitVal(self.trainAttr,self.trainLabels)
+        print(splitCriteria)
         #split the values to make splitAttr and splitLabels
-        if(not self.isPure(splitCriteria)):
-            pass#splitCriteria.append(self.findSplitVal(self.splitAttr,self.splitLabels))
+        self.splitData(splitCriteria,self.trainAttr,self.trainLabels)
+        splitCrit2High = []
+        splitCrit2Low = []
+        if(not len(set(self.splitLabelsHigh))==1): #Unique set is pure = len is one
+            splitCrit2High = self.findSplitVal(self.splitAttrHigh,self.splitLabelsHigh)
         else:
-            splitCriteria.append([-1,-1])
-        classified = self.classifyVals(splitCriteria)
+            print("high values pure, no more splitting")
+        if(not len(set(self.splitLabelsLow))==1): #Unique set is pure = len is one
+            splitCrit2Low = self.findSplitVal(self.splitAttrLow,self.splitLabelsLow)
+        else:
+            print("low values pure, no more splitting")
+        print(splitCrit2High)
+        print(splitCrit2Low)
+        classified = self.classifyVals(splitCriteria,splitCrit2Low,splitCrit2High)
+        print(classified)
+
+    def splitData(self,splitCrit,dataAttr,dataLabels):
+        splitAttr = splitCrit[0]
+        splitVal = splitCrit[1]
+        splitAttrLow = []
+        splitAttrHigh = []
+        splitLabLow = []
+        splitLabHigh = []
+        for i,attr in enumerate(dataAttr):
+            if(attr[splitAttr] < splitVal):
+                splitAttrLow.append(attr)
+                splitLabLow.append(dataLabels[i])  
+            else:
+                splitAttrHigh.append(attr)
+                splitLabHigh.append(dataLabels[i])
+        self.splitAttrHigh = splitAttrHigh
+        self.splitLabelsHigh = splitLabHigh
+        self.splitAttrLow = splitAttrLow
+        self.splitLabelsLow = splitLabLow
 
     def isPure(self,splitCriteria1):
         pass
@@ -48,7 +80,10 @@ class DecisionTree(object):
                 infoGainAttr.append(key)
                 infoGainCand.append(cand)
                 infoGain.append(self.calcInfoGain(key,cand,dataArr,dataLabels))
+        print("infoGain, FindSplitVal")
         print(infoGain)
+        print(infoGainAttr)
+        print(infoGainCand)
         maxGain = max(infoGain)
         maxGainIndex = infoGain.index(maxGain)
         
@@ -116,7 +151,7 @@ class DecisionTree(object):
 
 
     def classifyVals(self,splitCriteria):
-        print(splitCriteria)
+        #print(splitCriteria)
         firstCrit = splitCriteria[0]
         attr1 = firstCrit[0]
         val1 = firstCrit[1]
@@ -130,7 +165,8 @@ class DecisionTree(object):
                 classifiedList.append(self.labelSet[0])
             else:
                 classifiedList.append(self.labelSet[1])
-        print(classifiedList)                
+        #print("classifiedList")
+        #print(classifiedList)                
 
 
     def formatInputArray(self,tp):
