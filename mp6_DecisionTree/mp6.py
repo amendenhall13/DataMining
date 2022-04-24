@@ -42,12 +42,12 @@ class DecisionTree(object):
             [splitAttr2HighLow, splitLabels2HighLow, splitAttr2HighHigh,splitLabels2HighHigh] = self.splitData(splitCrit2High,self.splitAttrHigh,self.splitLabelsHigh)
 
         else:
-            print("high values pure, no more splitting")
+            pass
         if(not len(set(self.splitLabelsLow))==1): #Unique set is pure = len is one
             splitCrit2Low = self.findSplitVal(self.splitAttrLow,self.splitLabelsLow)
             [splitAttr2LowLow, splitLabels2LowLow, splitAttr2LowHigh,splitLabels2LowHigh] = self.splitData(splitCrit2Low,self.splitAttrLow,self.splitLabelsLow)
         else:
-            print("low values pure, no more splitting")
+            pass
 
         try:
             split1HighLabel = mode(self.splitLabelsHigh)
@@ -86,10 +86,6 @@ class DecisionTree(object):
         try:
             splitCrit2High.append(split2HighHighLabel)
         except: pass
-
-        print(splitCriteria)
-        print(splitCrit2Low)
-        print(splitCrit2High)
 
         classified = self.classifyVals(splitCriteria,splitCrit2Low,splitCrit2High)
         print(classified)
@@ -149,7 +145,6 @@ class DecisionTree(object):
         return candList
  
     def calcInfoGain(self,key,cand,attrDict,labList):
-        #print("key"+str(key)+" cand "+str(cand))
         infoSplit = 0
         attrValList = []
         for item in attrDict:
@@ -204,42 +199,32 @@ class DecisionTree(object):
         highLabel1 = splitCriteria[3]
         classifiedList = []
         for item in self.testAttr:
-            print("Item Tested: "+str(item))
             if(item[attr1] < splitVal1):
-                print("split1Low")
                 if(any(splitCrit2Low)): #If there's stuff in the list
                     attr2Low = splitCrit2Low[0]
                     splitVal2Low = splitCrit2Low[1]
                     lowLabel2Low = splitCrit2Low[2]
                     highLabel2Low = splitCrit2Low[3]
                     if(item[attr2Low]<splitVal2Low):
-                        print("split2LowLow")
                         classifiedList.append(lowLabel2Low)
                     else:
-                        print("split2LowHigh")
                         classifiedList.append(highLabel2Low)
                 else:
-                    print("No split2Low")
                     classifiedList.append(lowLabel1)#If there's no sub-classification, just use that level.
             else:
-                print("split1High")
                 if(any(splitCrit2High)): #If there's stuff in the list
                     attr2High = splitCrit2High[0]
                     splitVal2High = splitCrit2High[1]
                     lowLabel2High = splitCrit2High[2]
                     highLabel2High = splitCrit2High[3]
                     if(item[attr2High]<splitVal2High):
-                        print("split2HighLow")
                         classifiedList.append(lowLabel2High)
                     else:
-                        print("split2HighHigh")
                         classifiedList.append(highLabel2High)
                 else:
-                    print("No split2High")
                     classifiedList.append(highLabel1)#If there's no sub-classification, just use that level.
         return(classifiedList)
-        #print("classifiedList")
-        #print(classifiedList)                
+              
 
 
     def formatInputArray(self,tp):
@@ -247,7 +232,6 @@ class DecisionTree(object):
             nrows_ = 100
             df = pd.read_csv(self.inputFilename,header=None,sep="\n")#,nrows = nrows_)
             df = df[0].str.split(" ",expand=True)
-            #print(df)
             trainLabels = []
             trainAttr = []
             testLabels = []
@@ -256,21 +240,17 @@ class DecisionTree(object):
                 rowAttr = {}
                 rowLabel = -2
                 for j,item in row.items():
-                    #print(item)
                     if j == 0:
                         rowLabel = int(float(item))
                     else:
                         #put attr stuff into a dict
                         valList = item.split(":")
-                        #print(valList)
                         attrNum = int(float(valList[0].strip(''))) #split attr name and value
                         attrVal = float(valList[1].strip(''))
                         rowAttr[attrNum] = attrVal
                     
                     #Append row to new data structures based on test or train
-                    #print(type(rowLabel))
                 if(rowLabel == -1):
-                    #+print("hi")
                     testLabels.append(rowLabel)
                     testAttr.append(rowAttr)
                 else:
